@@ -1,0 +1,71 @@
+import pandas as pd
+import numpy as np
+from sklearn.dummy import DummyClassifier
+
+# Supported sports and bet types
+SPORTS = ["NFL", "NBA", "MLB", "Soccer", "NHL"]
+BET_TYPES = ["3-bet", "4-bet", "Player Parlay"]
+
+def build_predictive_model(train_data):
+    df = pd.DataFrame(train_data)
+    if df.empty:
+        return None
+    features = [c for c in df.columns if c != "result"]
+    X = df[features]
+    y = df["result"]
+    model = DummyClassifier(strategy="most_frequent")
+    model.fit(X, y)
+    return model
+
+def predict_best_odds(model, testing_data):
+    if model is None or not testing_data:
+        return "No model/data available."
+    df_test = pd.DataFrame(testing_data)
+    if df_test.empty:
+        return "No testing data available."
+    predictions = model.predict(df_test)
+    df_test["predicted_result"] = predictions
+    print("\n📊 Predicted results for test games:")
+    print(df_test)
+    return df_test
+
+def get_user_input():
+    print("🏈 Welcome to the AI Sports Betting Assistant 🏀⚾⚽🏒")
+    print("Choose your sport:")
+    for i, sport in enumerate(SPORTS, 1):
+        print(f"{i}. {sport}")
+    sport_choice = int(input("Enter the number of your sport: "))
+    sport = SPORTS[sport_choice - 1]
+
+    print("\nChoose your bet type:")
+    for i, bet in enumerate(BET_TYPES, 1):
+        print(f"{i}. {bet}")
+    bet_choice = int(input("Enter the number of your bet type: "))
+    bet_type = BET_TYPES[bet_choice - 1]
+
+    print(f"\nYou selected: {sport} with a {bet_type}")
+    print("Enter your training data (example: feature1, feature2, result):")
+    train_data = []
+    for i in range(2):
+        f1 = int(input(f"Game {i+1} - feature1: "))
+        f2 = int(input(f"Game {i+1} - feature2: "))
+        res = int(input(f"Game {i+1} - result (1=win, 0=loss): "))
+        train_data.append({"feature1": f1, "feature2": f2, "result": res})
+
+    print("\nEnter your test data (example: feature1, feature2):")
+    test_data = []
+    for i in range(2):
+        f1 = int(input(f"Test Game {i+1} - feature1: "))
+        f2 = int(input(f"Test Game {i+1} - feature2: "))
+        test_data.append({"feature1": f1, "feature2": f2})
+
+    return sport, bet_type, train_data, test_data
+
+def run_betting_interface():
+    sport, bet_type, train_data, test_data = get_user_input()
+    model = build_predictive_model(train_data)
+    results = predict_best_odds(model, test_data)
+    print(f"\n✅ {bet_type} predictions for {sport} complete!")
+
+if __name__ == "__main__":
+    run_betting_interface()
